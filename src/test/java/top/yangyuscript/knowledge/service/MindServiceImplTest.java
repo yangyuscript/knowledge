@@ -5,9 +5,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.StringUtils;
 import top.yangyuscript.knowledge.common.ParamKey;
 
 import java.util.ArrayList;
@@ -25,7 +29,7 @@ import java.util.Set;
 public class MindServiceImplTest {
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private StringRedisTemplate redisTemplate;
 
     @Test
     public void save() {
@@ -51,20 +55,48 @@ public class MindServiceImplTest {
 
     @Test
     public void test(){
+        redisTemplate.delete(ParamKey.USER_MIND_MAP);
+
         Set<String> set = redisTemplate.keys("mind_picture_*");
         for(String str:set){
             String mindStr = (String)redisTemplate.opsForValue().get(str);
             Map<String,String> mind = (Map)JSON.parse(mindStr);
-            mind.put("email","1837475870@qq.com");
+            String email = mind.get("email");
+            if(StringUtils.isEmpty(email)){
+                email = "1837475870@qq.com";
+            }
             String mid = mind.get("mid");
             redisTemplate.opsForValue().set(mid,JSON.toJSONString(mind));
 
-            List<String> list = (List)JSON.parse((String)redisTemplate.opsForHash().get(ParamKey.USER_MIND_MAP,"1837475870@qq.com"));
+            List<String> list = (List)JSON.parse((String)redisTemplate.opsForHash().get(ParamKey.USER_MIND_MAP, email));
             if(list == null){
                 list = new ArrayList<>();
             }
             list.add(mid);
-            redisTemplate.opsForHash().put(ParamKey.USER_MIND_MAP,"1837475870@qq.com",JSON.toJSONString(list));
+            redisTemplate.opsForHash().put(ParamKey.USER_MIND_MAP,email,JSON.toJSONString(list));
         }
+    }
+
+    @Test
+    public void test4(){
+        List<String> list = (List)JSON.parse((String)redisTemplate.opsForHash().get(ParamKey.USER_MIND_MAP,"1837475870@qq.com"));
+        if(list == null){
+            list = new ArrayList<>();
+        }
+        final List<String> list2 = list;
+        SessionCallback<Object> callback = new SessionCallback<Object>() {
+            @Override
+            public Object execute(RedisOperations redisOperations) throws DataAccessException {
+                redisOperations.multi();
+
+                redisOperations.opsForList().leftPush(ParamKey.MIND,"111");
+                redisOperations.opsForValue().set("111","111");
+
+                list2.add("111");
+                redisOperations.opsForHash().put(ParamKey.USER_MIND_MAP,"1837475870@qq.com",JSON.toJSONString(list2));
+                return redisOperations.exec();
+            }
+        };
+        redisTemplate.execute(callback);
     }
 }

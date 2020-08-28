@@ -35,20 +35,23 @@ public class MindServiceImpl implements MindService{
         mind.put("email",email);
         mind.put(ParamKey.CREATE_TIME,TimeUtil.getNowTime());
         String realMindStr = JSONObject.toJSONString(mind);
+
+        List<String> list = (List)JSON.parse((String)redisTemplate.opsForHash().get(ParamKey.USER_MIND_MAP,email));
+        if(list == null){
+            list = new ArrayList<>();
+        }
+        final List<String> targetList = list;
+
         SessionCallback<Object> callback = new SessionCallback<Object>() {
             @Override
             public Object execute(RedisOperations redisOperations) throws DataAccessException {
+                // 注意:multi和exec方法间执行查询操作无效
                 redisOperations.multi();
-
                 redisOperations.opsForList().leftPush(ParamKey.MIND,mid);
                 redisOperations.opsForValue().set(mid,realMindStr);
                 redisOperations.opsForHash().put(ParamKey.MINDMAPS_NAME_ID_MAP,((Map)mind.get("data")).get("topic"),mid);
-                List<String> list = (List)JSON.parse((String)redisOperations.opsForHash().get(ParamKey.USER_MIND_MAP,email));
-                if(list == null){
-                    list = new ArrayList<>();
-                }
-                list.add(mid);
-                redisOperations.opsForHash().put(ParamKey.USER_MIND_MAP,email,JSON.toJSONString(list));
+                targetList.add(mid);
+                redisOperations.opsForHash().put(ParamKey.USER_MIND_MAP,email,JSON.toJSONString(targetList));
                 return redisOperations.exec();
             }
         };
