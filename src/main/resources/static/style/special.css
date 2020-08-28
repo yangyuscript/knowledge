@@ -1,0 +1,36 @@
+.panel-heading{
+    background-color: gray !important;
+    color:white !important;
+}
+
+a{
+    color: black !important;
+}
+
+button{
+    background-color: gray !important;
+    color: white !important;
+    border-color: gray !important;
+}
+
+jmnode{
+    background-color: gray !important;
+}
+
+.latestMindsBtn{
+    background-color: white !important;
+    color: gray !important;
+}
+
+.info td{
+    background-color: gray !important;
+    color: white !important;
+}
+
+.info td button{
+    border-color: white !important;
+}
+
+:focus{
+    outline: none !important;
+}

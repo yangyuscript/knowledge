@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="base">
+
+<div th:fragment="content">
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table">
+                <span th:each="mind:${minds}">
+            <tr class="info">
+                <td style="width:90%;">
+                    <strong th:text="${mind.data.topic}"></strong><br>
+                    <small th:text="${mind.createTime}"></small>
+                </td>
+                <td>
+                    <button type="button" class="btn modify-btn">修改</button>
+                    <input type="hidden" th:value="${mind.mid}"/>
+                </td>
+            </tr>
+                </span>
+            </table>
+        </div>
+    </div>
+
+    <script type="text/javascript" th:src="@{/js/jsmind.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $(".modify-btn").click(function () {
+                window.location.href = '/create?mid=' + $(this).next().val()
+                    + '&token=' + localStorage.getItem("mind-token")
+                    + '&email=' + localStorage.getItem('email');
+            });
+        })
+    </script>
+</div>
+</html>

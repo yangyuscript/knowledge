@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="base">
+    <div th:fragment="content">
+        <input id="mid" type="hidden" th:value="${mid}"/>
+        <input id="mindStr" type="hidden" th:value="${mindStr}"/>
+        <div style="position: fixed;top:70px;left:30px;z-index: 1000;width:800px;">
+            <!--<button class="btn btn-sm btn-success" onclick="show_data()">查看数据</button>-->
+            <button class="btn btn-sm btn-success" id="save_btn">保存</button>
+            <button id="zoom-out-btn" class="btn btn-sm btn-success" onclick="zoomOut();">缩小</button>
+            <button id="zoom-in-btn" class="btn btn-sm btn-success" onclick="zoomIn();">放大</button>
+            <button id="screen-shoot-btn" class="btn btn-sm btn-success" onclick="screenShoot();">快照</button>
+            <button type="button" class="btn btn-sm btn-danger"
+                    data-toggle="popover"
+                    title="快捷键"
+                    data-placement="bottom"
+                    data-html="true"
+                    data-content="<p>1.esc键：创建子节点</p>
+                                  <p>2.Enter键：创建兄弟节点(根节点无效)</p>
+                                  <p>3.Del键：删除节点</p>
+                                  <p>4.alt+e：编辑当前节点(mac os:option+e)</p>">
+                快捷键
+            </button>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-12">
+                <div id="jsmind_container" style="width: 1200px;height: 800px;color:red;margin:0 auto;"></div>
+            </div>
+        </div>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+        <script type="text/javascript" th:src="@{/js/jsmind.js}"></script>
+        <script type="text/javascript" th:src="@{/js/jsmind.screenshot.js}"></script>
+        <script type="text/javascript" th:src="@{/js/mine.js}"></script>
+        <script>
+            var options = {
+                container: 'jsmind_container',
+                editable: true,
+                theme: 'orange'
+            };
+            var mind = {
+                /* 元数据，定义思维导图的名称、作者、版本等信息 */
+                "meta": {
+                    "name": "example",
+                    "author": "yangyuscript",
+                    "version": "0.1"
+                },
+                /* 数据格式声明 */
+                "format": "node_array",
+                /* 数据内容 */
+                "data": [
+                    {"id": "root", "isroot": true, "topic": "主题"}
+                ]
+            };
+
+            if(""!=$("#mindStr").val()){
+                mind = JSON.parse($("#mindStr").val());
+            }
+
+            var jm = new jsMind(options);
+            jm.show(mind);
+
+            function show_data() {
+                var mind_data = jm.get_data();
+                var mind_string = jsMind.util.json.json2string(mind_data);
+                alert(mind_string);
+            }
+
+            document.onkeydown = function (event) {
+                var e = event || window.event || arguments.callee.caller.arguments[0];
+                if (e && e.keyCode == 27) { // 按 Esc
+                    //要做的事情
+                }
+                if (e && e.keyCode == 113) { // 按 F2
+                    //要做的事情
+                }
+                if (e && e.keyCode == 13) { // enter 键
+
+                }
+                if (e && e.keyCode == 27) {
+                    addChildNode();
+                    editSelectedNode(e);
+                }
+                if(e && e.keyCode == 69 && e.altKey){
+                    editSelectedNode(e);
+                }
+            };
+
+            $(function () {
+                $('#save_btn').click(function () {
+                    var mind_data = jm.get_data();
+                    var mind_string = jsMind.util.json.json2string(mind_data);
+                    mineRequest('/saveMind',{mid: $("#mid").val(),mindString: mind_string, email:localStorage.getItem("email")},function(res){
+                       console.log(res);
+                       $("#mid").val(res.mid);
+                       alert("保存成功");
+                    },function(needLogin){
+                        if(needLogin){
+                            $('.login-modal').modal('toggle');
+                        }
+                    });
+                });
+            });
+
+            $(function(){
+                $('[data-toggle="popover"]').popover();
+            });
+
+            var zoomOutBtn = document.getElementById("zoom-out-btn");
+            var zoomInBtn = document.getElementById("zoom-in-btn");
+            function zoomOut(){
+                if(jm.view.zoomOut()){
+                    zoomInBtn.disable = false;
+                }else{
+                    zoomOutBtn.disable = true;
+                }
+            }
+
+            function zoomIn(){
+                if(jm.view.zoomIn()){
+                    zoomOutBtn.disable = false;
+                }else{
+                    zoomInBtn.disable = true;
+                }
+            }
+
+            function screenShoot(){
+                jm.screenshot.shootDownload();
+            }
+
+
+            function addChildNode(){
+                var selected_node = jm.get_selected_node(); // as parent of new node
+                if (!selected_node) {
+                    alert('please select a node first.');
+                    return;
+                }
+
+                var nodeid = jsMind.util.uuid.newid();
+                var topic = '* Node_' + nodeid.substr(nodeid.length - 6) + ' *';
+                var node = jm.add_node(selected_node, nodeid, topic);
+                jm.select_node(node);
+            }
+
+            function editSelectedNode(e){
+                var selectedNode = jm.get_selected_node();
+                if(!selectedNode){
+                    alert('please select a node first.');
+                }else{
+                    //jm.dblclick_handle(selectedNode);
+                    jm.begin_edit(selectedNode.id);
+                }
+                e.preventDefault();
+                return false;
+            }
+        </script>
+    </div>
+</html>

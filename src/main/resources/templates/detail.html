@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="base">
+
+    <div th:fragment="content" >
+        <div style="position: fixed;top:70px;left:30px;z-index: 1000;">
+            <button id="zoom-out-btn" class="btn btn-sm btn-success" onclick="zoomOut();">缩小</button>
+            <button id="zoom-in-btn" class="btn btn-sm btn-success" onclick="zoomIn();">放大</button>
+            <button id="screen-shoot-btn" class="btn btn-sm btn-success" onclick="screenShoot();">快照</button>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div id="jsmind_container" style="width: 1200px;height: 800px;margin:0 auto;"></div>
+            </div>
+
+        </div>
+        <input id="mindString" type="hidden" th:value="${mindString}"/>
+
+        <script type="text/javascript" th:src="@{/js/jsmind.js}"></script>
+        <script type="text/javascript" th:src="@{/js/jsmind.screenshot.js}"></script>
+        <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+        <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+        <script type="text/javascript">
+            var mind = JSON.parse(document.getElementById("mindString").value);
+            var options = {
+                container: 'jsmind_container',
+                editable: true,
+                theme: 'orange'
+            };
+            var jm = new jsMind(options);
+            jm.show(mind);
+
+            var zoomOutBtn = document.getElementById("zoom-out-btn");
+            var zoomInBtn = document.getElementById("zoom-in-btn");
+            function zoomOut(){
+                if(jm.view.zoomOut()){
+                    zoomInBtn.disable = false;
+                }else{
+                    zoomOutBtn.disable = true;
+                }
+            }
+
+            function zoomIn(){
+                if(jm.view.zoomIn()){
+                    zoomOutBtn.disable = false;
+                }else{
+                    zoomInBtn.disable = true;
+                }
+            }
+
+            function screenShoot(){
+                jm.screenshot.shootDownload();
+            }
+        </script>
+    </div>
+</html>

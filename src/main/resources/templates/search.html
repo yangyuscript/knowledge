@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="base">
+
+<div th:fragment="content">
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table">
+                <span th:each="mind:${minds}">
+            <tr class="info">
+                <td style="width:90%;">
+                    <strong th:text="${mind.data.topic}"></strong><br>
+                    <small th:text="${mind.createTime}"></small>
+                </td>
+                <td>
+                    <form action="/detail" method="post">
+                        <input name="mindString" type="hidden" th:value="${mind}"/>
+                        <button type="submit" class="btn">查看</button>
+                    </form>
+                </td>
+            </tr>
+                </span>
+            </table>
+        </div>
+    </div>
+
+    <script type="text/javascript" th:src="@{/js/jsmind.js}"></script>
+    <script type="text/javascript">
+        var mind = JSON.parse(document.getElementById("mindString").value);
+        var options = {
+            container: 'jsmind_container',
+            editable: true,
+            theme: 'orange'
+        };
+        var jm = new jsMind(options);
+        jm.show(mind);
+
+        $(function(){
+
+        })
+    </script>
+</div>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="base">
+    <div th:fragment="content">
+        <input type="hidden" id="needLogin" th:value="${needLogin}"/>
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-5">
+                <div class="panel panel-success">
+                    <div class="panel-heading" style="text-align:center;">
+                        <h3 class="panel-title">最新</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="list-group" id="new">
+                            <span th:each="mind:${latestMinds}">
+                                <form action="/detail" method="post">
+                                    <input name="mindString" type="hidden" th:value="${mind}"/>
+                                    <button type="submit" class="list-group-item latestMindsBtn"><span
+                                            th:text="${mind.data.topic}"></span><small style="float:right;" th:text="${mind.createTime}"></small></button>
+                                </form>
+                            </span>
+                        </div>
+                    </div>
+                    <!--<div class="panel-footer">Panel footer</div>-->
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="panel panel-danger">
+                    <div class="panel-heading" style="text-align:center;">
+                        <h3 class="panel-title">热门</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="list-group" id="hot">
+                            <span th:each="mind:${hotestMinds}">
+                                <form action="/detail" method="post">
+                                    <input name="mindString" type="hidden" th:value="${mind}"/>
+                                    <button type="submit" class="list-group-item latestMindsBtn"><span
+                                            th:text="${mind.data.topic}"></span><small style="float:right;" th:text="${mind.createTime}"></small></button>
+                                </form>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+        <script>
+            $(function(){
+                if($("#needLogin").val()=="true"){
+                    $('.login-modal').modal('toggle');
+                }
+            });
+        </script>
+    </div>
+</html>
