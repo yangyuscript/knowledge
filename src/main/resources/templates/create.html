@@ -4,7 +4,9 @@
     <div th:fragment="content">
         <input id="mid" type="hidden" th:value="${mid}"/>
         <input id="mindStr" type="hidden" th:value="${mindStr}"/>
-        <div style="position: fixed;top:70px;left:30px;z-index: 1000;width:800px;">
+        <div style="position: fixed;top:70px;left:30px;z-index: 1000;">
+            <div class="row">
+                <div class="col-md-12">
             <!--<button class="btn btn-sm btn-success" onclick="show_data()">查看数据</button>-->
             <button class="btn btn-sm btn-success" id="save_btn">保存</button>
             <button id="zoom-out-btn" class="btn btn-sm btn-success" onclick="zoomOut();">缩小</button>
@@ -21,6 +23,18 @@
                                   <p>4.alt+e：编辑当前节点(mac os:option+e)</p>">
                 快捷键
             </button>
+                </div>
+            </div>
+            <div class="row" style="margin-top:10px;">
+                <div class="col-md-12">
+                    <span>脑图标签:</span>
+                    <span th:each="tag:${tags}">
+                        <span th:text=${tag} class="old-tag-span label label-default"></span>
+                        <span class="glyphicon glyphicon-remove-circle" style="margin-right:5px;"></span>
+                    </span>
+                    <span id="plus-tag-span" class="glyphicon glyphicon-plus" style="margin-left:20px;"></span>
+                </div>
+            </div>
         </div>
 
 
@@ -91,9 +105,36 @@
 
             $(function () {
                 $('#save_btn').click(function () {
+                    var tags = '';
+                    // 整合标签
+                    $(".old-tag-span").each(function(){
+                        tags += ',' + $(this).text();
+                    });
+                    var flag = 0;
+                    $(".new-tag-input").each(function(){
+                        if($(this).val() != undefined && $(this).val().trim() != ''){
+                            if($(this).val().length > 8 || $(this).val().length < 1){
+                                alert('请调整标签长度');
+                                flag = 1;
+                                return false;
+                            }
+                            tags += ',' + $(this).val();
+                        }
+                    });
+
+                    if(flag === 1){
+                        return false;
+                    }
+
+
                     var mind_data = jm.get_data();
                     var mind_string = jsMind.util.json.json2string(mind_data);
-                    mineRequest('/saveMind',{mid: $("#mid").val(),mindString: mind_string, email:localStorage.getItem("email")},function(res){
+                    mineRequest('/saveMind',{
+                        mid: $("#mid").val(),
+                        mindString: mind_string,
+                        email:localStorage.getItem("email"),
+                        tags: tags
+                    },function(res){
                        console.log(res);
                        $("#mid").val(res.mid);
                        alert("保存成功");
@@ -156,6 +197,21 @@
                 e.preventDefault();
                 return false;
             }
+
+            // 添加标签
+            $("#plus-tag-span").click(function(){
+                $(this).before("<input style='margin-left:3px;width:40px;' class='new-tag-input' type='text' value='' autocomplete='off'/>" +
+                    "<span class='glyphicon glyphicon-remove-circle' style='margin-right:5px;'></span>");
+                $(".glyphicon-remove-circle").on('click',function(){
+                    $(this).prev().remove();
+                    $(this).remove();
+                });
+            });
+
+            $(".glyphicon-remove-circle").on('click',function(){
+                $(this).prev().remove();
+                $(this).remove();
+            });
         </script>
     </div>
 </html>

@@ -4,17 +4,20 @@ import com.alibaba.fastjson.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import top.yangyuscript.knowledge.common.ParamKey;
 import top.yangyuscript.knowledge.service.MindService;
 import top.yangyuscript.knowledge.service.UserService;
-import top.yangyuscript.knowledge.utils.CusAccessObjectUtil;
 import top.yangyuscript.knowledge.utils.EmailUtil;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Controller
 public class IndexController {
@@ -58,46 +61,6 @@ public class IndexController {
         return "index";
     }
 
-    @RequestMapping(value = "detail",method = RequestMethod.POST)
-    public String detail(Model model, @RequestParam(name = "mindString")String mindString, HttpServletRequest req){
-        //记录脑图点击数
-        Map<String,Object> mind = JSON.parseObject(mindString);
-        String mid = (String)mind.get("mid");
-        String ip = CusAccessObjectUtil.getIpAddress(req);
-        mindService.addClick(mid,ip);
-
-        model.addAttribute("mindString",mindString);
-        return "detail";
-    }
-
-    @RequestMapping(value = "create",method = RequestMethod.GET)
-    public String create(Model model,@RequestParam(name = "mid",required = false)String mid,@RequestParam(value = "email",required = false)String email,
-                         @RequestParam(value = "token",required = false)String token) throws Exception{
-        if(!StringUtils.isEmpty(mid)){
-            String mind = mindService.get(mid);
-            if(!StringUtils.isEmpty(mind)){
-                model.addAttribute("mindStr",mind);
-                model.addAttribute("mid",mid);
-            }
-        }
-        return "create";
-    }
-
-    @RequestMapping(value = "saveMind",method = RequestMethod.POST)
-    @ResponseBody
-    public Map<String,Object> saveMind(@RequestParam(name = "mindString")String mindString,@RequestParam(name = "mid",required = false)String mid
-            ,@RequestParam(name="email",required = false)String email){
-        Map<String,Object> result = new HashMap<>();
-        if(StringUtils.isEmpty(mid) || "mid".equals(mid)){
-            result.put("mid",mindService.save(mindString,email));
-        }else{
-            mindService.update(mid,mindString);
-            result.put("mid",mid);
-        }
-        result.put("result","ok");
-        return result;
-    }
-
     @GetMapping(value = "search")
     public String search(Model model,@RequestParam(name = "keyword")String keyword){
         if(StringUtils.isEmpty(keyword)){
@@ -114,16 +77,4 @@ public class IndexController {
         return "search";
     }
 
-    @GetMapping(value = "myMindMaps")
-    public String myMindeMaps(Model model,@RequestParam("email")String email,@RequestParam("token")String token){
-        List<String> list = mindService.getUserMindMap(email);
-        List<Map> listMap = new ArrayList<>();
-        if(!CollectionUtils.isEmpty(list)){
-            list.stream().forEach(mid -> {
-                listMap.add((Map)JSON.parse(mindService.get(mid)));
-            });
-        }
-        model.addAttribute("minds",listMap);
-        return "mine";
-    }
 }

@@ -9,12 +9,14 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import top.yangyuscript.knowledge.common.ParamKey;
 import top.yangyuscript.knowledge.utils.TimeUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service("mindService")
 public class MindServiceImpl implements MindService{
@@ -24,7 +26,7 @@ public class MindServiceImpl implements MindService{
     private StringRedisTemplate redisTemplate;
 
     @Override
-    public String save(String mindStr,String email) {
+    public String save(String mindStr,String email, String tags) {
         Map<String,String> map = new HashMap<>();
         String pre = ParamKey.MIND_PICTURE + TimeUtil.getTime("yyyyMMdd");
         long key = redisTemplate.opsForValue().increment("num_"+pre,1);
@@ -33,6 +35,7 @@ public class MindServiceImpl implements MindService{
         Map<String,Object> mind = JSONObject.parseObject(mindStr);
         mind.put("mid",mid);
         mind.put("email",email);
+        resolveTags(mind,tags);
         mind.put(ParamKey.CREATE_TIME,TimeUtil.getNowTime());
         String realMindStr = JSONObject.toJSONString(mind);
 
@@ -60,7 +63,7 @@ public class MindServiceImpl implements MindService{
     }
 
     @Override
-    public String update(String mid,String mindStr) {
+    public String update(String mid,String mindStr,String tags) {
         String originalMindStr = get(mid);
         Map<String,Object> originalMindMap = JSONObject.parseObject(originalMindStr);
         String originalTopicStr = (String)((Map)originalMindMap.get("data")).get("topic");
@@ -69,6 +72,7 @@ public class MindServiceImpl implements MindService{
         nowMindMap.put(ParamKey.CREATE_TIME,originalMindMap.get(ParamKey.CREATE_TIME));
         nowMindMap.put(ParamKey.MODIFY_TIME,TimeUtil.getNowTime());
         nowMindMap.put(ParamKey.MID,mid);
+        resolveTags(nowMindMap,tags);
         mindStr = JSONObject.toJSONString(nowMindMap);
         if(!originalTopicStr.equals(nowTopicStr)){
             redisTemplate.opsForHash().put(ParamKey.MINDMAPS_NAME_ID_MAP,nowTopicStr,mid);
@@ -132,5 +136,10 @@ public class MindServiceImpl implements MindService{
         return mid+"_dtl_"+topic;
     }
 
-
+    private void resolveTags(Map<String,Object> mind,String tags){
+        if(!StringUtils.isEmpty(tags)){
+            List<String> tagsList = Arrays.stream(tags.split(",")).filter(t -> !StringUtils.isEmpty(t)&&!StringUtils.isEmpty(t.trim())).collect(Collectors.toList());
+            mind.put("tags",tagsList);
+        }
+    }
 }

@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Set;
 
 public interface MindService {
-    String save(String mindStr,String email);
-    String update(String mid,String mindStr);
+    String save(String mindStr,String email,String tags);
+    String update(String mid,String mindStr,String tags);
     List<String> get(int len);
     String get(String key);
     Set<Object> scan(String topic);

@@ -57,7 +57,7 @@ public class EmailUtil {
         String registerKey = ParamKey.MIND_FORGET_PASSWORD_PREFIX + emailTo;
         String registerVal = stringRedisTemplate.opsForValue().get(registerKey);
         if(!StringUtils.isEmpty(registerVal)){
-            return false;
+            return true;
         }
         SimpleMailMessage mimeMessage = new SimpleMailMessage();
         mimeMessage.setFrom("MIND-HUP<"+ from + ">");
@@ -65,7 +65,7 @@ public class EmailUtil {
         mimeMessage.setSubject("Mindhup-脑图小站 找回密码");
         stringRedisTemplate.opsForValue().set(registerKey, password);
         stringRedisTemplate.expire(registerKey,3*60, TimeUnit.SECONDS);
-        mimeMessage.setText("您的登录密码是" + RandomNumUtil.getRandom4Num() + "，请妥善保存，以免密码泄露");
+        mimeMessage.setText("您的登录密码是" + password + "，请妥善保存，以免密码泄露");
         sender.send(mimeMessage);
         return true;
     }

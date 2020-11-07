@@ -1,0 +1,5 @@
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+    background-color: #d9edf7;
+    border-color: #d9edf7;
+    color: black;
+}

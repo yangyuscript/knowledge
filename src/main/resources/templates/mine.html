@@ -5,6 +5,26 @@
 <div th:fragment="content">
     <div class="row">
         <div class="col-md-12">
+            <ol class="breadcrumb">
+                <!--<li><a href="#">Home</a></li>
+                <li><a href="#">Library</a></li>-->
+                <li>我的脑图</li>
+            </ol>
+        </div>
+    </div>
+    <div class="row">
+        <div class = "col-md-2">
+            <div class="list-group">
+                <a href="#" class="list-group-item active">
+                    全部
+                    <span class="badge" th:text="${allSize}"></span>
+                </a>
+                <span th:each="mindTag:${mindTags}">
+                    <a href="#" class="list-group-item" th:utext="|${mindTag.key} <span class='badge'>${mindTag.value}</span>|"></a>
+                </span>
+            </div>
+        </div>
+        <div class="col-md-10">
             <table class="table">
                 <span th:each="mind:${minds}">
             <tr class="info">
@@ -26,10 +46,31 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
     <script type="text/javascript">
         $(function () {
+            if(localStorage.getItem("tag")!=null){
+                $(".list-group-item").each(function(){
+                   if(localStorage.getItem("tag")===$(this).html().trim().split("<")[0].trim()){
+                       $(".list-group-item").removeClass("active");
+                       $(this).addClass("active");
+                   }
+                });
+            }
+
             $(".modify-btn").click(function () {
                 window.location.href = '/create?mid=' + $(this).next().val()
                     + '&token=' + localStorage.getItem("mind-token")
                     + '&email=' + localStorage.getItem('email');
+            });
+
+            $(".list-group-item").click(function () {
+
+                localStorage.setItem("tag",$(this).html().trim().split("<")[0].trim());
+
+                if($(this).text().indexOf("全部")>-1){
+                    window.location.href = '/myMindMaps?token=' + localStorage.getItem("mind-token") + '&email=' + localStorage.getItem('email');
+                }else{
+                    window.location.href = '/myMindMaps?token=' + localStorage.getItem("mind-token") + '&email=' + localStorage.getItem('email')
+                    + '&tag=' + $(this).html().trim().split("<")[0].trim();
+                }
             });
         })
     </script>
